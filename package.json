@@ -1,0 +1,14 @@
+{
+  "name": "tp_node_js_mysql",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/doninj/tp_node_js_mysql.git",
+  "author": "jbdonin <jb.donin@adequation-france.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "mysql": "^2.18.1",
+    "nodemon": "^2.0.7"
+  }
+}
