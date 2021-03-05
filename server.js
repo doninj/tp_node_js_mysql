@@ -11,13 +11,18 @@ const fileUpload = require('express-fileupload'),
     host: "localhost",
     user: "root",
     password: "",
-    database: "user_node"
+    database: "user2"
   });
 
 db.connect(function (err) {
   if (err) throw err;
-  console.log("Connecté à la base de données MySQL!");
-});
+  var sql = "CREATE TABLE IF NOT EXISTS users  (user_id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), email VARCHAR(255), password varchar(50), firstname VARCHAR(50),date_naissance DATE, lat DOUBLE,longi DOUBLE,image VARCHAR(255))";
+  db.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log("Table created");
+    console.log("Connected!");
+  });
+})
 
 app.use(bodyParser.urlencoded({
   limit: '50mb',
@@ -31,18 +36,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 //affichage des utlisateurs
 app.get('/user', (req, res) => {
   db.query('SELECT * FROM users', function (err, result, fields) {
-    if (Object.keys(result).length === 0) {
-      res.status(400).json(`aucun utilisateur `)
-    }
     if (err) res.status(400).send(err)
-    res.json(result);
+    else {
+      res.json(result)
+    };
   })
 });
 //affichage d'un utilisateur par id 
 app.get('/user/:id', (req, res, next) => {
   db.query('SELECT * FROM users WHERE user_id = ?', [req.params.id], function (err, result, fields) {
     if (Object.keys(result).length === 0) {
-      res.status(400).json(`l\'utilisateur  ${req.params.id} n\'existe pas `)
+      res.status(400).json(`l\'utilisateur  n\'existe pas `)
     } else {
       res.json(result)
     }
@@ -81,11 +85,9 @@ app.post('/user/', (req, res) => {
     file.mv('public/image/' + file_name, (err) => {
       if (err)
         return res.status(500).json(err)
-
       db.query('INSERT INTO users SET ?', [params], (err, row) => {
         if (err) return res.status(500).json(`${err.message}`)
-        console.log(row)
-        res.send(`users avec les parametres ${params.name}, ${params.firstname}, ${params.email}, ${params.date_naissance} ont été ajouté`)
+        res.json(`users avec les parametres ${params.name}, ${params.firstname}, ${params.email}, ${params.date_naissance} ont été ajouté`)
       })
     })
   } else {
@@ -109,11 +111,12 @@ app.put('/user/:id', (req, res) => {
     file.mv('public/image/' + file_name, (err) => {
       if (err)
         return res.status(500).json(err)
-
-      db.query('UPDATE users SET ? WHERE user_id = ?', [params, req.params.id], function (err, row) {
-
-        if (!err) res.json(`update fait`)
-        else console.log(err)
+      db.query('SELECT * FROM users WHERE user_id = ?', [req.params.id], function (err, result, fields) {
+        db.query('UPDATE users SET ? WHERE user_id = ?', [params, req.params.id], function (err, row) {
+          fs.unlinkSync(`public/${result[0].image}`)
+          if (!err) res.json(`update fait`)
+          else console.log(err)
+        })
       })
     })
   } else {
